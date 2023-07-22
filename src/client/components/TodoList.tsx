@@ -1,4 +1,4 @@
-import type { SVGProps } from 'react'
+import { SVGProps, useState } from 'react'
 
 import * as Checkbox from '@radix-ui/react-checkbox'
 
@@ -64,31 +64,67 @@ import { api } from '@/utils/client/api'
  */
 
 export const TodoList = () => {
+  const [status, setStatus] = useState<string[]>(['completed', 'pending'])
+  console.log(status)
   const { data: todos = [] } = api.todo.getAll.useQuery({
-    statuses: ['completed', 'pending'],
+    statuses: status,
   })
 
   return (
-    <ul className="grid grid-cols-1 gap-y-3">
-      {todos.map((todo) => (
-        <li key={todo.id}>
-          <div className="flex items-center rounded-12 border border-gray-200 px-4 py-3 shadow-sm">
-            <Checkbox.Root
-              id={String(todo.id)}
-              className="flex h-6 w-6 items-center justify-center rounded-6 border border-gray-300 focus:border-gray-700 focus:outline-none data-[state=checked]:border-gray-700 data-[state=checked]:bg-gray-700"
-            >
-              <Checkbox.Indicator>
-                <CheckIcon className="h-4 w-4 text-white" />
-              </Checkbox.Indicator>
-            </Checkbox.Root>
+    <>
+      <div className='tabs'>
+      <button
+        type="button"
+        onClick={() => {
+          setStatus(['completed', 'pending'])
+        }}
+        className="font-bold text-white bg-gray-700 px-5 py-2 rounded-full"
+      >
+        All
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setStatus(['pending'])
+        }}
+        className="font-bold text-white bg-gray-700 px-5 py-2 rounded-full"
+      >
+        Pending
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setStatus(['completed'])
+        }}
+        className="font-bold text-white bg-gray-700 px-5 py-2 rounded-full"
+      >
+        Complete
+      </button>
+      </div>
+      <ul className="grid grid-cols-1 gap-y-3">
+        {todos.map((todo) => (
+          <li key={todo.id}>
+            <div className="flex items-center rounded-12 border border-gray-200 px-4 py-3 shadow-sm">
+              <Checkbox.Root
+                id={String(todo.id)}
+                className="flex h-6 w-6 items-center justify-center rounded-6 border border-gray-300 focus:border-gray-700 focus:outline-none data-[state=checked]:border-gray-700 data-[state=checked]:bg-gray-700"
+              >
+                <Checkbox.Indicator>
+                  <CheckIcon className="h-4 w-4 text-white" />
+                </Checkbox.Indicator>
+              </Checkbox.Root>
 
-            <label className="block pl-3 font-medium" htmlFor={String(todo.id)}>
-              {todo.body}
-            </label>
-          </div>
-        </li>
-      ))}
-    </ul>
+              <label
+                className="block pl-3 font-medium"
+                htmlFor={String(todo.id)}
+              >
+                {todo.body}
+              </label>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </>
   )
 }
 
