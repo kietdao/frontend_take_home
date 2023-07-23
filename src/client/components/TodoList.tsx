@@ -65,20 +65,30 @@ import { api } from '@/utils/client/api'
 
 export const TodoList = () => {
   const [status, setStatus] = useState<string[]>(['completed', 'pending'])
-  console.log(status)
+  const apiContext = api.useContext()
   const { data: todos = [] } = api.todo.getAll.useQuery({
     statuses: status,
   })
-
+  // update status of todo
+  const { mutate: updateStatus, isLoading: isUpdating } = api.todoStatus.update.useMutation({
+    onSuccess: () => {
+      apiContext.todo.getAll.refetch()
+    }
+  })
+  const { mutate: deleteTodo } = api.todo.delete.useMutation({
+    onSuccess: () => {
+      apiContext.todo.getAll.refetch()
+    }
+  })
   return (
     <>
-      <div className='tabs'>
+      <div className='flex gap-2 mb-10'>
       <button
         type="button"
         onClick={() => {
           setStatus(['completed', 'pending'])
         }}
-        className="font-bold text-white bg-gray-700 px-5 py-2 rounded-full"
+        className="font-bold border border-solid border-gray-200 hover:text-white hover:bg-gray-700 focus:text-white focus:bg-gray-700 px-5 py-2 rounded-full"
       >
         All
       </button>
@@ -87,7 +97,7 @@ export const TodoList = () => {
         onClick={() => {
           setStatus(['pending'])
         }}
-        className="font-bold text-white bg-gray-700 px-5 py-2 rounded-full"
+        className="font-bold border border-solid border-gray-200 hover:text-white hover:bg-gray-700 focus:text-white focus:bg-gray-700 px-5 py-2 rounded-full"
       >
         Pending
       </button>
@@ -96,7 +106,7 @@ export const TodoList = () => {
         onClick={() => {
           setStatus(['completed'])
         }}
-        className="font-bold text-white bg-gray-700 px-5 py-2 rounded-full"
+        className="font-bold border border-solid border-gray-200 hover:text-white hover:bg-gray-700 focus:text-white focus:bg-gray-700 px-5 py-2 rounded-full"
       >
         Complete
       </button>
@@ -107,6 +117,21 @@ export const TodoList = () => {
             <div className="flex items-center rounded-12 border border-gray-200 px-4 py-3 shadow-sm">
               <Checkbox.Root
                 id={String(todo.id)}
+                defaultChecked={todo.status === 'completed' ? true : false}
+                onCheckedChange={(checked) => {
+                  if(checked) {
+                    updateStatus({
+                      status: 'completed',
+                      todoId: todo.id
+                    })
+                  } else {
+                    updateStatus({
+                      status: 'pending',
+                      todoId: todo.id
+                    })
+                  }
+
+                }}
                 className="flex h-6 w-6 items-center justify-center rounded-6 border border-gray-300 focus:border-gray-700 focus:outline-none data-[state=checked]:border-gray-700 data-[state=checked]:bg-gray-700"
               >
                 <Checkbox.Indicator>
@@ -115,11 +140,17 @@ export const TodoList = () => {
               </Checkbox.Root>
 
               <label
-                className="block pl-3 font-medium"
+                className={`block pl-3 font-medium text-gray-500 ${todo.status === 'completed' && 'line-through decoration-gray-500'}`}
                 htmlFor={String(todo.id)}
               >
                 {todo.body}
               </label>
+              <XMarkIcon className='w-6 h-6 hover:cursor-pointer' onClick={(e) => {
+                e.preventDefault()
+                deleteTodo({
+                  id: todo.id
+                })
+              }}/>
             </div>
           </li>
         ))}
